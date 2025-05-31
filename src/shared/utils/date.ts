@@ -5,7 +5,7 @@ export const toDateOnly = (date: Date): Date => {
 }
 
 export const formatDate = (date: Date): string => {
-  return date.toISOString().split('T')[0]
+  return date.toISOString().split("T")[0]
 }
 
 export const parseDate = (dateString: string): Date => {

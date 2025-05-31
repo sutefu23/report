@@ -1,8 +1,20 @@
-import { serve } from '@hono/node-server'
-import { Hono } from 'hono'
-import { cors } from 'hono/cors'
-import { logger } from 'hono/logger'
-import { config } from 'dotenv'
+import { serve } from "@hono/node-server"
+import { config } from "dotenv"
+import { Hono } from "hono"
+import { cors } from "hono/cors"
+import { logger } from "hono/logger"
+import { createDailyReportService } from "../application/services/daily-report-service.js"
+import { createUserService } from "../application/services/user-service.js"
+import { createDailyReportId } from "../domain/types/index.js"
+import { createPasswordHasher } from "../infrastructure/auth/password-hasher.js"
+import { createTokenGenerator } from "../infrastructure/auth/token-generator.js"
+import { getPrismaClient } from "../infrastructure/database/prisma.js"
+import { createDailyReportRepository } from "../infrastructure/repositories/daily-report-repository.js"
+import {
+  type SimpleUserRepository,
+  createSimpleUserRepository,
+} from "../infrastructure/repositories/simple-user-repository.js"
+import { createUserRepository } from "../infrastructure/repositories/user-repository.js"
 
 // Load environment variables
 config()
@@ -10,12 +22,133 @@ config()
 const app = new Hono()
 
 // Middleware
-app.use('*', logger())
-app.use('*', cors())
+app.use("*", logger())
+app.use("*", cors())
+
+// Initialize dependencies
+const prisma = getPrismaClient()
+const dailyReportRepo = createDailyReportRepository(prisma)
+const userRepo = createUserRepository(prisma)
+const simpleUserRepo = createSimpleUserRepository(prisma)
+const passwordHasher = createPasswordHasher()
+const tokenGenerator = createTokenGenerator(
+  process.env.JWT_SECRET || "default-secret",
+)
+
+// Initialize services
+const dailyReportService = createDailyReportService(
+  dailyReportRepo,
+  simpleUserRepo,
+)
+const userService = createUserService(userRepo, passwordHasher, tokenGenerator)
 
 // Health check endpoint
-app.get('/health', (c) => {
-  return c.json({ status: 'ok', timestamp: new Date().toISOString() })
+app.get("/health", (c) => {
+  return c.json({ status: "ok", timestamp: new Date().toISOString() })
+})
+
+// API Routes
+app.post("/api/auth/login", async (c) => {
+  try {
+    const body = await c.req.json()
+    const token = await userService.authenticate(body)
+    return c.json(token)
+  } catch (error) {
+    return c.json(
+      { error: error instanceof Error ? error.message : "Unknown error" },
+      400,
+    )
+  }
+})
+
+app.post("/api/users", async (c) => {
+  try {
+    const body = await c.req.json()
+    const user = await userService.create(body)
+    return c.json(user)
+  } catch (error) {
+    return c.json(
+      { error: error instanceof Error ? error.message : "Unknown error" },
+      400,
+    )
+  }
+})
+
+app.post("/api/daily-reports", async (c) => {
+  try {
+    const body = await c.req.json()
+    const report = await dailyReportService.create(body)
+    return c.json(report)
+  } catch (error) {
+    return c.json(
+      { error: error instanceof Error ? error.message : "Unknown error" },
+      400,
+    )
+  }
+})
+
+app.put("/api/daily-reports/:id", async (c) => {
+  try {
+    const id = createDailyReportId(c.req.param("id"))
+    const body = await c.req.json()
+    const report = await dailyReportService.update({ ...body, id })
+    return c.json(report)
+  } catch (error) {
+    return c.json(
+      { error: error instanceof Error ? error.message : "Unknown error" },
+      400,
+    )
+  }
+})
+
+app.post("/api/daily-reports/:id/submit", async (c) => {
+  try {
+    const id = createDailyReportId(c.req.param("id"))
+    const body = await c.req.json()
+    const report = await dailyReportService.submit({ id, userId: body.userId })
+    return c.json(report)
+  } catch (error) {
+    return c.json(
+      { error: error instanceof Error ? error.message : "Unknown error" },
+      400,
+    )
+  }
+})
+
+app.post("/api/daily-reports/:id/approve", async (c) => {
+  try {
+    const id = createDailyReportId(c.req.param("id"))
+    const body = await c.req.json()
+    const report = await dailyReportService.approve({
+      id,
+      approverId: body.approverId,
+      feedback: body.feedback,
+    })
+    return c.json(report)
+  } catch (error) {
+    return c.json(
+      { error: error instanceof Error ? error.message : "Unknown error" },
+      400,
+    )
+  }
+})
+
+app.post("/api/daily-reports/:id/reject", async (c) => {
+  try {
+    const id = createDailyReportId(c.req.param("id"))
+    const body = await c.req.json()
+    const report = await dailyReportService.reject({
+      id,
+      approverId: body.approverId,
+      feedback: body.feedback,
+    })
+    return c.json(report)
+  } catch (error) {
+    return c.json(
+      { error: error instanceof Error ? error.message : "Unknown error" },
+      400,
+    )
+  }
 })
 
 // Start server

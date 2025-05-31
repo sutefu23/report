@@ -2,50 +2,68 @@
 
 ## プロジェクト概要
 
-従業員の日々の作業内容を記録・管理し、上司とのコミュニケーションを促進するWebベースの日報システムの開発。Slack連携を必須機能として含み、リアルタイムでの日報提出リマインダーや集計機能を提供する。
+従業員の日々の作業内容を記録・管理し、上司とのコミュニケーションを促進するWebベースの日報システムの開発。関数型DDD設計による型安全なアーキテクチャを採用し、段階的な機能実装を行う。
 
-### 主要機能
-- 日報作成・編集・閲覧
-- 作業記録の複数行管理（プロジェクト名、作業時間、作業内容）
-- 困ったこと・相談事項の記録
-- 明日やることの記録
+### 現在の実装状況（2024年12月時点）
+- ✅ **ドメイン層**: 完全実装（型定義、ワークフロー、エラーハンドリング）
+- ✅ **データベース**: Prismaスキーマ完成
+- 🚧 **バックエンドAPI**: 基本的なHono REST API実装
+- 🚧 **フロントエンド**: 認証UI基盤とshadcn/ui設定
+- ❌ **gRPC**: 未実装（Protocol Buffers定義済み）
+- ❌ **Slack連携**: 未実装（将来フェーズ）
+
+### 機能優先度
+
+**Phase 1（実装済み・進行中）**:
+- ✅ ユーザー認証・管理
+- 🚧 日報作成・編集・閲覧
+- 🚧 作業記録の複数行管理（プロジェクト、作業時間、作業内容、進捗率）
+- ✅ 困ったこと・明日の予定記録
+- 🚧 日報の承認・差し戻しワークフロー
+
+**Phase 2（計画中）**:
 - 上司によるコメント機能
 - 従業員別・プロジェクト別集計
 - レポート出力（CSV/PDF）
+- gRPC API実装
+
+**Phase 3（将来）**:
 - Slack連携（リマインダー、通知）
+- 高度な分析・ダッシュボード機能
 
 ## 技術スタック
 
 ### 共通
-- **言語**: TypeScript（フルタイプ）
+- **言語**: TypeScript（strict mode、`any`/`unknown`使用禁止）
 - **ID生成**: ULID
-- **テスト**: Vitest（テストファイルは `.spec.ts` 拡張子を使用）
-- **リンター**: Biome（ESLintとPrettierの代替）
-- **型チェック**: TypeScript strict mode
+- **テスト**: Vitest (unit) + Playwright (E2E)
+- **リンター/フォーマッター**: Biome（ESLint + Prettierの代替）
+- **型安全性**: Branded Types + Either型パターン
+- **モノレポ**: npm workspaces
 
 ### フロントエンド
 - **フレームワーク**: Next.js 14 (App Router)
 - **UIフレームワーク**: shadcn/ui
-- **コンポーネント開発**: Storybook
+- **コンポーネント開発**: Storybook（設定済み、コンポーネント未作成）
 - **スタイリング**: Tailwind CSS
-- **状態管理**: Zustand
-- **フォーム**: React Hook Form + Zod
-- **gRPC**: @grpc/grpc-js + nice-grpc
+- **状態管理**: Zustand（認証ストア実装済み）
+- **フォーム**: React Hook Form + Zod（ログインフォーム実装済み）
+- **API通信**: REST API（現在）、gRPC（計画中）
 
 ### バックエンド
-- **フレームワーク**: Hono
-- **gRPC**: @grpc/grpc-js + nice-grpc
-- **ORM**: Prisma
+- **HTTP API**: Hono（基本エンドポイント実装済み）
+- **gRPC**: nice-grpc（Protocol Buffers定義済み、実装未完了）
+- **ORM**: Prisma（スキーマ完成、リポジトリ実装済み）
 - **データベース**: PostgreSQL
-- **認証**: JWT
-- **バリデーション**: Zod
-- **ランタイム**: Node.js
+- **認証**: JWT + bcrypt（実装済み）
+- **アーキテクチャ**: 関数型DDD
+- **ランタイム**: Node.js + tsx
 
 ### インフラ・外部サービス
-- **データベース**: PostgreSQL（Docker Compose で管理）
-- **コンテナ**: Docker & Docker Compose
-- **Slack API**: Slack Web API
-- **ファイル出力**: PDFKit, csv-writer
+- **データベース**: PostgreSQL（Prismaスキーマ完成、Docker Compose構成予定）
+- **Slack API**: Slack Web API（Phase 3で実装予定）
+- **ファイル出力**: PDFKit, csv-writer（Phase 2で実装予定）
+- **デプロイメント**: 本番環境未設定（開発環境のみ）
 
 ## アーキテクチャ
 
@@ -57,123 +75,174 @@
 4. **イミュータブル**: 全てのデータ構造をimmutableとして扱う
 5. **関数合成**: 小さな関数を組み合わせて複雑な処理を構築
 
-### ディレクトリ構成
+### 現在のディレクトリ構成
 
 ```
 project-root/
 ├── src/
-│   ├── front/                 # Next.js フロントエンド
-│   │   │   ├── app/             # App Router
-│   │   │   ├── components/      # UIコンポーネント
-│   │   │   ├── lib/             # ユーティリティ
-│   │   │   └── types/           # 型定義
-│   │   ├── public/
-│   │   └── package.json
-│   ├── backend/                 # Hono + gRPC バックエンド
-│   │   │   ├── domain/          # ドメイン層
-│   │   │   │   ├── types/       # ドメイン型定義
-│   │   │   │   ├── workflows/   # ビジネスロジック
-│   │   │   │   └── errors/      # ドメインエラー
-│   │   │   ├── infrastructure/  # インフラ層
-│   │   │   │   ├── database/    # Prisma関連
-│   │   │   │   ├── grpc/        # gRPCサーバー
-│   │   │   │   ├── slack/       # Slack連携
-│   │   │   │   └── auth/        # 認証
-│   │   │   ├── application/     # アプリケーション層
-│   │   │   │   ├── services/    # アプリケーションサービス
-│   │   │   │   └── handlers/    # gRPCハンドラー
-│   │   │   └── utils/           # ユーティリティ
-│   │   ├── prisma/
-│   │   │   ├── schema.prisma
-│   │   │   └── migrations/
-│   │   └── package.json
+│   ├── front/                   # Next.js 14 フロントエンド
+│   │   ├── app/                # App Router
+│   │   │   ├── (auth)/         # 認証関連ページ（実装済み）
+│   │   │   ├── dashboard/      # ダッシュボード（基本構造のみ）
+│   │   │   └── globals.css     # グローバルスタイル
+│   │   ├── components/         # UIコンポーネント
+│   │   │   ├── shadcn/ui/     # shadcn/uiコンポーネント（実装済み）
+│   │   │   └── auth/          # 認証フォーム（実装済み）
+│   │   ├── lib/               # ユーティリティ・設定
+│   │   │   ├── auth.ts        # 認証ストア（実装済み）
+│   │   │   └── utils.ts       # ユーティリティ関数
+│   │   ├── types/             # フロントエンド型定義
+│   │   └── package.json       # フロントエンド依存関係
+│   ├── backend/                 # Hono HTTP API バックエンド
+│   │   ├── domain/             # ドメイン層（実装済み）
+│   │   │   ├── types/          # ドメイン型定義
+│   │   │   │   ├── base.ts     # Either型、Result型、基本型
+│   │   │   │   ├── user.ts     # ユーザードメイン型
+│   │   │   │   └── daily-report.ts # 日報ドメイン型
+│   │   │   ├── workflows/      # ビジネスロジック（実装済み）
+│   │   │   │   ├── user-workflow.ts
+│   │   │   │   └── daily-report-workflow.ts
+│   │   │   └── errors/         # ドメインエラー（実装済み）
+│   │   ├── infrastructure/     # インフラ層（部分実装）
+│   │   │   ├── database/       # Prisma関連（実装済み）
+│   │   │   ├── repositories/   # データアクセス層（実装済み）
+│   │   │   ├── grpc/          # gRPCサーバー（未実装）
+│   │   │   ├── slack/         # Slack連携（未実装）
+│   │   │   └── auth/          # 認証（実装済み）
+│   │   ├── application/        # アプリケーション層（部分実装）
+│   │   │   ├── services/      # アプリケーションサービス（実装済み）
+│   │   │   └── handlers/      # gRPCハンドラー（未実装）
+│   │   ├── index.ts           # Honoサーバーエントリポイント（実装済み）
+│   │   ├── tsconfig.json      # TypeScript設定
+│   │   └── package.json       # バックエンド依存関係
 │   └── shared/                  # 共通モジュール
-│       ├── proto/               # Protocol Buffers定義
-│       ├── types/               # 共通型定義
-│       └── utils/               # 共通ユーティリティ
-├── docs/                        # ドキュメント
-├── .github/                     # GitHub Actions
-└── package.json                 # ルートpackage.json
+│       ├── proto/              # Protocol Buffers定義（定義済み、生成未実装）
+│       ├── types/              # 共通型定義（未実装）
+│       └── utils/              # 共通ユーティリティ（未実装）
+├── prisma/
+│   └── schema.prisma           # ✅ 完全なデータベーススキーマ
+├── tests/
+│   ├── unit/                  # ✅ ドメインワークフローテスト
+│   └── e2e/                   # ✅ Playwright E2Eテスト
+├── docs/                       # ドキュメント
+├── .env.example               # 環境変数テンプレート
+├── biome.json                 # Biome設定
+└── package.json               # ルートpackage.json（モノレポ設定）
 ```
 
 ### ドメイン層設計
 
-#### 型定義例 (`backend/src/domain/types/`)
+#### 実装済みの型定義 (`backend/src/domain/types/`)
 
 ```typescript
-// user.ts
-export type UserId = string & { readonly brand: unique symbol }
-export type UserRole = 'employee' | 'manager'
+// base.ts - 基本型とEither型パターン
+export type Brand<K, T> = K & { __brand: T }
+export type UserId = Brand<string, 'UserId'>
+export type DailyReportId = Brand<string, 'DailyReportId'>
+
+export type Either<E, A> = 
+  | { tag: 'Left'; left: E }    // エラー
+  | { tag: 'Right'; right: A }  // 成功
+
+// user.ts - ユーザードメイン
+export type UserRole = 'admin' | 'manager' | 'employee'
 
 export type User = {
-  readonly id: UserId
-  readonly username: string
-  readonly email: string
-  readonly role: UserRole
-  readonly managerId?: UserId
-  readonly slackUserId: string
-  readonly createdAt: Date
-  readonly updatedAt: Date
+  id: UserId
+  email: string
+  password?: string
+  name: string
+  role: UserRole
+  departmentId: DepartmentId
+  isActive: boolean
+  createdAt: Date
+  updatedAt: Date
 }
 
-// daily-report.ts
-export type DailyReportId = string & { readonly brand: unique symbol }
-export type WorkRecordId = string & { readonly brand: unique symbol }
-export type ProjectId = string & { readonly brand: unique symbol }
+// daily-report.ts - 日報ドメイン
+export type DailyReportStatus = 'draft' | 'submitted' | 'approved' | 'rejected'
+
+export type TaskProgress = {
+  projectId: ProjectId
+  description: string
+  hoursSpent: number
+  progress: number  // 0-100の進捗率
+}
 
 export type DailyReport = {
-  readonly id: DailyReportId
-  readonly userId: UserId
-  readonly reportDate: Date
-  readonly memo?: string
-  readonly tomorrowPlan?: string
-  readonly workRecords: readonly WorkRecord[]
-  readonly comments: readonly Comment[]
-  readonly createdAt: Date
-  readonly updatedAt: Date
-}
-
-export type WorkRecord = {
-  readonly id: WorkRecordId
-  readonly dailyReportId: DailyReportId
-  readonly projectId: ProjectId
-  readonly workHours: number
-  readonly workContent: string
-  readonly createdAt: Date
+  id: DailyReportId
+  userId: UserId
+  date: Date
+  tasks: TaskProgress[]
+  challenges: string
+  nextDayPlan: string
+  status: DailyReportStatus
+  submittedAt?: Date
+  approvedAt?: Date
+  approvedBy?: UserId
+  feedback?: string
+  createdAt: Date
+  updatedAt: Date
 }
 ```
 
-#### Workflow例 (`backend/src/domain/workflows/`)
+#### 実装済みのWorkflow例 (`backend/src/domain/workflows/`)
 
 ```typescript
-// daily-report-workflow.ts
-import { DailyReport, CreateDailyReportInput } from '../types'
-import { DailyReportRepository } from '../repositories'
-
+// daily-report-workflow.ts - 日報ワークフロー
 export const createDailyReportWorkflow = (
-  repository: DailyReportRepository
+  reportRepo: DailyReportRepository,
+  userRepo: UserRepository
 ) => async (
   input: CreateDailyReportInput
 ): Promise<Either<DomainError, DailyReport>> => {
-  return pipe(
-    input,
-    validateCreateDailyReportInput,
-    TE.chain(createDailyReportEntity),
-    TE.chain(repository.save),
-    TE.chain(notifyManagerIfNeeded)
-  )
+  // 1. バリデーション
+  const validationResult = validateCreateInput(input)
+  if (validationResult.tag === 'Left') {
+    return validationResult
+  }
+
+  // 2. ユーザー存在確認
+  const user = await userRepo.findById(input.userId)
+  if (!user) {
+    return left(notFound('ユーザーが見つかりません'))
+  }
+
+  // 3. 重複チェック
+  const existingReport = await reportRepo.findByUserAndDate(input.userId, input.date)
+  if (existingReport) {
+    return left(businessRuleViolation('指定された日付の日報は既に存在します'))
+  }
+
+  // 4. エンティティ作成・保存
+  const report: DailyReport = {
+    id: createDailyReportId(ulid()),
+    userId: input.userId,
+    date: input.date,
+    tasks: input.tasks,
+    challenges: input.challenges,
+    nextDayPlan: input.nextDayPlan,
+    status: 'draft',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  }
+
+  const created = await reportRepo.create(report)
+  return right(created)
 }
 
-const validateCreateDailyReportInput = (
-  input: CreateDailyReportInput
-): Either<ValidationError, ValidatedInput> => {
-  // バリデーションロジック
-}
+// ビジネスルールに基づくバリデーション
+const validateCreateInput = (input: CreateDailyReportInput): Either<DomainError, CreateDailyReportInput> => {
+  if (input.tasks.length === 0) {
+    return left(validationError('少なくとも1つのタスクを入力してください'))
+  }
 
-const createDailyReportEntity = (
-  input: ValidatedInput
-): TaskEither<DomainError, DailyReport> => {
-  // エンティティ作成ロジック
+  const totalHours = input.tasks.reduce((sum, task) => sum + task.hoursSpent, 0)
+  if (totalHours > 24) {
+    return left(validationError('1日の作業時間は24時間を超えることはできません'))
+  }
+
+  return right(input)
 }
 ```
 
@@ -193,23 +262,44 @@ const createDailyReportEntity = (
 
 ### エラーハンドリング
 ```typescript
-// Result型を使用した統一的なエラーハンドリング
-type Result<T, E = Error> = 
-  | { success: true; data: T }
-  | { success: false; error: E }
+// Either型による統一的なエラーハンドリング（実装済み）
+export type Either<E, A> = 
+  | { tag: 'Left'; left: E }    // エラー
+  | { tag: 'Right'; right: A }  // 成功
 
-// Workflow内でのエラーハンドリング
-export const someWorkflow = (input: Input): Promise<Result<Output, DomainError>> => {
-  return pipe(
-    input,
-    validateInput,
-    TE.chain(processData),
-    TE.chain(saveToDatabase),
-    TE.match(
-      (error) => ({ success: false, error }),
-      (data) => ({ success: true, data })
-    )
-  )()
+export type DomainError = {
+  type: 'NOT_FOUND' | 'ALREADY_EXISTS' | 'VALIDATION_ERROR' | 'UNAUTHORIZED' | 'FORBIDDEN' | 'BUSINESS_RULE_VIOLATION'
+  message: string
+  details?: unknown
+}
+
+// Workflow内でのエラーハンドリング例
+export const submitDailyReportWorkflow = (
+  reportRepo: DailyReportRepository
+) => async (
+  input: SubmitDailyReportInput
+): Promise<Either<DomainError, DailyReport>> => {
+  const report = await reportRepo.findById(input.id)
+  if (!report) {
+    return left(notFound('日報が見つかりません'))
+  }
+
+  if (report.userId !== input.userId) {
+    return left(forbidden('他のユーザーの日報を提出することはできません'))
+  }
+
+  if (report.status === 'submitted' || report.status === 'approved') {
+    return left(businessRuleViolation('既に提出済みまたは承認済みの日報です'))
+  }
+
+  const updated = await reportRepo.update({
+    ...report,
+    status: 'submitted',
+    submittedAt: new Date(),
+    updatedAt: new Date(),
+  })
+
+  return right(updated)
 }
 ```
 
@@ -513,8 +603,78 @@ NEXT_PUBLIC_GRPC_URL="http://localhost:9090"
 - **Database**: PostgreSQL (Railway / Supabase)
 
 ### CI/CD
-- GitHub Actions
-- 自動テスト実行
-- 型チェック
-- リント・フォーマット
-- セキュリティスキャン
+- GitHub Actions（未設定）
+- 自動テスト実行（計画中）
+- 型チェック（ローカルのみ）
+- リント・フォーマット（Biome設定済み）
+- セキュリティスキャン（未設定）
+
+## 現在の実装状況と次のステップ
+
+### ✅ 完了済み（2024年12月時点）
+
+1. **プロジェクト基盤**
+   - モノレポ構成（npm workspaces）
+   - TypeScript strict mode設定
+   - Biome（linting/formatting）設定
+   - Vitest + Playwright テスト環境
+
+2. **バックエンド ドメイン層**
+   - Branded Types（型安全性確保）
+   - Either型によるエラーハンドリング
+   - 日報・ユーザー ドメインモデル
+   - 包括的なワークフロー実装（作成、更新、提出、承認、差し戻し）
+   - ドメインエラー型定義
+
+3. **データベース設計**
+   - 完全なPrismaスキーマ（User, Department, Project, DailyReport, Task, Notification）
+   - リレーション設計完了
+
+4. **バックエンド インフラ層（部分実装）**
+   - Prismaクライアント設定
+   - Repository実装（DailyReport, User）
+   - 認証サービス（bcrypt, JWT）
+
+5. **フロントエンド基盤**
+   - Next.js 14 + App Router
+   - shadcn/ui設定とコンポーネント導入
+   - 認証フォーム（React Hook Form + Zod）
+   - Zustand認証ストア
+
+6. **テスト**
+   - ドメインワークフロー単体テスト
+   - E2E認証フローテスト
+
+### 🚧 次の優先実装項目
+
+**Phase 1A - 基本機能完成**:
+1. REST API CRUD操作完全実装
+2. フロントエンド日報作成・編集画面
+3. 日報一覧・詳細表示画面
+4. ユーザー管理画面（管理者向け）
+5. 基本的な認証・認可機能
+
+**Phase 1B - ワークフロー完成**:
+1. 日報承認・差し戻しUI
+2. 通知システム基盤
+3. プロジェクト管理機能
+4. 部門管理機能
+
+**Phase 2 - 高度な機能**:
+1. gRPCサーバー・クライアント実装
+2. レポート生成（CSV/PDF）
+3. 集計・分析画面
+4. ダッシュボード機能
+
+**Phase 3 - 外部連携**:
+1. Slack API連携
+2. リマインダー・通知システム
+3. 本番デプロイ環境構築
+
+### 技術的負債と改善項目
+- Protocol Buffers生成スクリプト実装
+- Docker Compose設定
+- CI/CD パイプライン構築
+- セキュリティ監査・テスト
+- パフォーマンス最適化
+- エラー境界とログ管理

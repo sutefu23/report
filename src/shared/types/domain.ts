@@ -1,6 +1,12 @@
-import type { UserId, DailyReportId, WorkRecordId, ProjectId, CommentId } from './branded'
+import type {
+  CommentId,
+  DailyReportId,
+  ProjectId,
+  UserId,
+  WorkRecordId,
+} from "./branded"
 
-export type UserRole = 'employee' | 'manager'
+export type UserRole = "employee" | "manager"
 
 export type User = {
   readonly id: UserId

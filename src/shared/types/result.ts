@@ -14,17 +14,21 @@ export const err = <E>(error: E): Result<never, E> => ({
   error,
 })
 
-export const isOk = <T, E>(result: Result<T, E>): result is { success: true; data: T } => {
+export const isOk = <T, E>(
+  result: Result<T, E>,
+): result is Extract<Result<T, E>, { success: true }> => {
   return result.success === true
 }
 
-export const isErr = <T, E>(result: Result<T, E>): result is { success: false; error: E } => {
+export const isErr = <T, E>(
+  result: Result<T, E>,
+): result is Extract<Result<T, E>, { success: false }> => {
   return result.success === false
 }
 
 export const map = <T, U, E>(
   result: Result<T, E>,
-  fn: (value: T) => U
+  fn: (value: T) => U,
 ): Result<U, E> => {
   if (isOk(result)) {
     return ok(fn(result.data))
@@ -34,7 +38,7 @@ export const map = <T, U, E>(
 
 export const mapErr = <T, E, F>(
   result: Result<T, E>,
-  fn: (error: E) => F
+  fn: (error: E) => F,
 ): Result<T, F> => {
   if (isErr(result)) {
     return err(fn(result.error))
@@ -44,7 +48,7 @@ export const mapErr = <T, E, F>(
 
 export const flatMap = <T, U, E>(
   result: Result<T, E>,
-  fn: (value: T) => Result<U, E>
+  fn: (value: T) => Result<U, E>,
 ): Result<U, E> => {
   if (isOk(result)) {
     return fn(result.data)
