@@ -1,0 +1,36 @@
+{
+  "name": "daily-report-system",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "src/front",
+    "src/backend",
+    "src/shared"
+  ],
+  "scripts": {
+    "dev": "npm run dev:backend & npm run dev:frontend",
+    "dev:frontend": "npm run dev -w @daily-report/frontend",
+    "dev:backend": "npm run dev -w @daily-report/backend",
+    "build": "npm run build:shared && npm run build:backend && npm run build:frontend",
+    "build:shared": "npm run build -w @daily-report/shared",
+    "build:frontend": "npm run build -w @daily-report/frontend",
+    "build:backend": "npm run build -w @daily-report/backend",
+    "test": "npm run test --workspaces",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "typecheck": "npm run typecheck --workspaces",
+    "ui": "cd src/front && npx shadcn@latest add",
+    "db:migrate": "npm run db:migrate -w @daily-report/backend",
+    "db:studio": "npm run db:studio -w @daily-report/backend",
+    "db:seed": "npm run db:seed -w @daily-report/backend",
+    "proto:generate": "npm run proto:generate -w @daily-report/shared"
+  },
+  "keywords": ["daily-report", "typescript", "grpc", "nextjs", "hono"],
+  "author": "",
+  "license": "MIT",
+  "description": "日報システム - 従業員の日々の作業内容を記録・管理するシステム",
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4"
+  }
+}

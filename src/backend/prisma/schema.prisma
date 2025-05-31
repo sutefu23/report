@@ -1,0 +1,85 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid()) @db.VarChar(26)
+  username     String   @unique @db.VarChar(50)
+  email        String   @unique @db.VarChar(100)
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  role         String   @db.VarChar(20)
+  managerId    String?  @map("manager_id") @db.VarChar(26)
+  slackUserId  String   @map("slack_user_id") @db.VarChar(50)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  manager      User?          @relation("UserManager", fields: [managerId], references: [id])
+  subordinates User[]         @relation("UserManager")
+  dailyReports DailyReport[]
+  comments     Comment[]
+
+  @@map("users")
+}
+
+model DailyReport {
+  id           String   @id @default(cuid()) @db.VarChar(26)
+  userId       String   @map("user_id") @db.VarChar(26)
+  reportDate   DateTime @map("report_date") @db.Date
+  memo         String?  @db.Text
+  tomorrowPlan String?  @map("tomorrow_plan") @db.Text
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user        User          @relation(fields: [userId], references: [id])
+  workRecords WorkRecord[]
+  comments    Comment[]
+
+  @@unique([userId, reportDate])
+  @@map("daily_reports")
+}
+
+model WorkRecord {
+  id            String   @id @default(cuid()) @db.VarChar(26)
+  dailyReportId String   @map("daily_report_id") @db.VarChar(26)
+  projectId     String   @map("project_id") @db.VarChar(26)
+  workHours     Float    @map("work_hours")
+  workContent   String   @map("work_content") @db.Text
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  dailyReport DailyReport @relation(fields: [dailyReportId], references: [id], onDelete: Cascade)
+  project     Project     @relation(fields: [projectId], references: [id])
+
+  @@map("work_records")
+}
+
+model Project {
+  id          String   @id @default(cuid()) @db.VarChar(26)
+  name        String   @unique @db.VarChar(100)
+  description String?  @db.Text
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  workRecords WorkRecord[]
+
+  @@map("projects")
+}
+
+model Comment {
+  id            String   @id @default(cuid()) @db.VarChar(26)
+  dailyReportId String   @map("daily_report_id") @db.VarChar(26)
+  userId        String   @map("user_id") @db.VarChar(26)
+  content       String   @db.Text
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  dailyReport DailyReport @relation(fields: [dailyReportId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id])
+
+  @@map("comments")
+}

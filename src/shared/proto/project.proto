@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+package dailyreport.v1;
+
+message Project {
+  string id = 1;
+  string name = 2;
+  optional string description = 3;
+  bool is_active = 4;
+  int64 created_at = 5;
+  int64 updated_at = 6;
+}
+
+message CreateProjectRequest {
+  string name = 1;
+  optional string description = 2;
+}
+
+message CreateProjectResponse {
+  Project project = 1;
+}
+
+message GetProjectRequest {
+  string id = 1;
+}
+
+message GetProjectResponse {
+  Project project = 1;
+}
+
+message UpdateProjectRequest {
+  string id = 1;
+  optional string name = 2;
+  optional string description = 3;
+  optional bool is_active = 4;
+}
+
+message UpdateProjectResponse {
+  Project project = 1;
+}
+
+message ListProjectsRequest {
+  optional bool is_active = 1;
+  int32 limit = 2;
+  int32 offset = 3;
+}
+
+message ListProjectsResponse {
+  repeated Project projects = 1;
+  int32 total = 2;
+}
+
+service ProjectService {
+  rpc CreateProject(CreateProjectRequest) returns (CreateProjectResponse);
+  rpc GetProject(GetProjectRequest) returns (GetProjectResponse);
+  rpc UpdateProject(UpdateProjectRequest) returns (UpdateProjectResponse);
+  rpc ListProjects(ListProjectsRequest) returns (ListProjectsResponse);
+}
