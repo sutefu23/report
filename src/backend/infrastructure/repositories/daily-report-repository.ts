@@ -1,7 +1,7 @@
 import type {
   PrismaClient,
   DailyReport as PrismaDailyReport,
-  Task as PrismaTask,
+  WorkRecord as PrismaWorkRecord,
 } from "@prisma/client"
 import {
   type DailyReport,
@@ -15,24 +15,24 @@ export const createDailyReportRepository = (
   prisma: PrismaClient,
 ): DailyReportRepository => {
   const toDomain = (
-    report: PrismaDailyReport & { tasks: PrismaTask[] },
+    report: PrismaDailyReport & { workRecords: PrismaWorkRecord[] },
   ): DailyReport => ({
     id: createDailyReportId(report.id),
     userId: createUserId(report.userId),
-    date: report.date,
-    tasks: report.tasks.map((task: PrismaTask) => ({
-      projectId: createProjectId(task.projectId),
-      description: task.description,
-      hoursSpent: task.hoursSpent,
-      progress: task.progress,
+    date: report.reportDate,
+    tasks: report.workRecords.map((record: PrismaWorkRecord) => ({
+      projectId: createProjectId(record.projectId),
+      description: record.workContent,
+      hoursSpent: record.workHours,
+      progress: 0, // WorkRecord doesn't have progress field
     })),
-    challenges: report.challenges,
-    nextDayPlan: report.nextDayPlan,
-    status: report.status as DailyReport["status"],
-    submittedAt: report.submittedAt ?? undefined,
-    approvedAt: report.approvedAt ?? undefined,
-    approvedBy: report.approvedBy ? createUserId(report.approvedBy) : undefined,
-    feedback: report.feedback ?? undefined,
+    challenges: report.memo || "",
+    nextDayPlan: report.tomorrowPlan || "",
+    status: "draft" as DailyReport["status"], // No status in schema
+    submittedAt: undefined,
+    approvedAt: undefined,
+    approvedBy: undefined,
+    feedback: undefined,
     createdAt: report.createdAt,
     updatedAt: report.updatedAt,
   })
@@ -41,7 +41,7 @@ export const createDailyReportRepository = (
     findById: async (id: string): Promise<DailyReport | null> => {
       const report = await prisma.dailyReport.findUnique({
         where: { id },
-        include: { tasks: true },
+        include: { workRecords: true },
       })
       return report ? toDomain(report) : null
     },
@@ -51,8 +51,13 @@ export const createDailyReportRepository = (
       date: Date,
     ): Promise<DailyReport | null> => {
       const report = await prisma.dailyReport.findUnique({
-        where: { userId_date: { userId, date } },
-        include: { tasks: true },
+        where: {
+          userId_reportDate: {
+            userId,
+            reportDate: date,
+          },
+        },
+        include: { workRecords: true },
       })
       return report ? toDomain(report) : null
     },
@@ -62,52 +67,42 @@ export const createDailyReportRepository = (
         data: {
           id: report.id,
           userId: report.userId,
-          date: report.date,
-          challenges: report.challenges,
-          nextDayPlan: report.nextDayPlan,
-          status: report.status,
-          tasks: {
+          reportDate: report.date,
+          memo: report.challenges,
+          tomorrowPlan: report.nextDayPlan,
+          workRecords: {
             create: report.tasks.map((task) => ({
-              id: createDailyReportId(new Date().getTime().toString()),
               projectId: task.projectId,
-              description: task.description,
-              hoursSpent: task.hoursSpent,
-              progress: task.progress,
+              workContent: task.description,
+              workHours: task.hoursSpent,
             })),
           },
         },
-        include: { tasks: true },
+        include: { workRecords: true },
       })
       return toDomain(created)
     },
 
     update: async (report: DailyReport): Promise<DailyReport> => {
       const updated = await prisma.$transaction(async (tx) => {
-        await tx.task.deleteMany({
+        await tx.workRecord.deleteMany({
           where: { dailyReportId: report.id },
         })
 
         return await tx.dailyReport.update({
           where: { id: report.id },
           data: {
-            challenges: report.challenges,
-            nextDayPlan: report.nextDayPlan,
-            status: report.status,
-            submittedAt: report.submittedAt,
-            approvedAt: report.approvedAt,
-            approvedBy: report.approvedBy,
-            feedback: report.feedback,
-            tasks: {
+            memo: report.challenges,
+            tomorrowPlan: report.nextDayPlan,
+            workRecords: {
               create: report.tasks.map((task) => ({
-                id: createDailyReportId(new Date().getTime().toString()),
                 projectId: task.projectId,
-                description: task.description,
-                hoursSpent: task.hoursSpent,
-                progress: task.progress,
+                workContent: task.description,
+                workHours: task.hoursSpent,
               })),
             },
           },
-          include: { tasks: true },
+          include: { workRecords: true },
         })
       })
       return toDomain(updated)

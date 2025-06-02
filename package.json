@@ -2,11 +2,7 @@
   "name": "daily-report-system",
   "version": "1.0.0",
   "private": true,
-  "workspaces": [
-    "src/front",
-    "src/backend",
-    "src/shared"
-  ],
+  "workspaces": ["src/front", "src/backend", "src/shared"],
   "scripts": {
     "dev": "npm run dev:backend & npm run dev:frontend",
     "dev:frontend": "npm run dev -w @daily-report/frontend",
@@ -32,20 +28,19 @@
     "db:seed": "npm run db:seed -w @daily-report/backend",
     "proto:generate": "npm run proto:generate -w @daily-report/shared"
   },
-  "keywords": [
-    "daily-report",
-    "typescript",
-    "grpc",
-    "nextjs",
-    "hono"
-  ],
+  "keywords": ["daily-report", "typescript", "grpc", "nextjs", "hono"],
   "author": "",
   "license": "MIT",
   "description": "日報システム - 従業員の日々の作業内容を記録・管理するシステム",
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
     "@playwright/test": "^1.52.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.0",
     "playwright": "^1.52.0"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,json,css,md}": ["biome check --write"]
   },
   "main": "index.js",
   "directories": {

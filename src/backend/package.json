@@ -41,6 +41,8 @@
     "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^20",
     "@types/pdfkit": "^0.13.5",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.0",
     "prisma": "^6.0.1",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
