@@ -11,11 +11,11 @@ export const createUserRepository = (prisma: PrismaClient): UserRepository => {
   const toDomain = (user: PrismaUser): User => ({
     id: createUserId(user.id),
     email: user.email,
-    password: user.password,
-    name: user.name,
+    password: undefined, // passwordHash is not exposed in domain
+    name: user.username,
     role: user.role as UserRole,
-    departmentId: createDepartmentId(user.departmentId),
-    isActive: user.isActive,
+    departmentId: createDepartmentId(""), // No departmentId in schema
+    isActive: true, // No isActive in schema, default to true
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   })
@@ -40,11 +40,10 @@ export const createUserRepository = (prisma: PrismaClient): UserRepository => {
         data: {
           id: user.id,
           email: user.email,
-          password: user.password,
-          name: user.name,
+          passwordHash: user.password, // Note: password should be hashed before this
+          username: user.name,
           role: user.role,
-          departmentId: user.departmentId,
-          isActive: user.isActive,
+          slackUserId: "", // Required field, needs to be provided
         },
       })
       return toDomain(created)
@@ -54,10 +53,8 @@ export const createUserRepository = (prisma: PrismaClient): UserRepository => {
       const updated = await prisma.user.update({
         where: { id: user.id },
         data: {
-          name: user.name,
+          username: user.name,
           role: user.role,
-          departmentId: user.departmentId,
-          isActive: user.isActive,
         },
       })
       return toDomain(updated)
