@@ -14,6 +14,8 @@
     "test": "vitest",
     "test:watch": "vitest watch",
     "test:coverage": "vitest run --coverage",
+    "test:integration": "tsx test/integration/run-all-tests.ts",
+    "test:integration:watch": "NODE_ENV=test vitest watch --config vitest.integration.config.ts",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",

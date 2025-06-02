@@ -1,7 +1,7 @@
 import { config } from "dotenv"
-import { getPrismaClient, disconnectPrisma } from "./prisma"
-import { createPasswordHasher } from "../auth/password-hasher"
 import { ulid } from "ulid"
+import { createPasswordHasher } from "../auth/password-hasher"
+import { disconnectPrisma, getPrismaClient } from "./prisma"
 
 // Load environment variables
 config()
