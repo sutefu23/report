@@ -6,9 +6,10 @@ export default defineConfig({
     globals: true,
     environment: "node",
     include: [
-      "src/**/*.spec.ts",
-      "src/**/*.test.ts",
-      "../../tests/unit/backend/**/*.test.ts",
+      "./**/*.spec.ts",
+      "./**/*.test.ts",
+      "!node_modules/**",
+      "!dist/**",
     ],
     setupFiles: ["../../tests/unit/backend/setup.ts"],
     coverage: {

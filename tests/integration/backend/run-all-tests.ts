@@ -23,7 +23,7 @@ for (const test of tests) {
   console.log("─".repeat(40))
 
   try {
-    execSync(`npx tsx ${path.join("test/integration", test.file)}`, {
+    execSync(`npx tsx ${path.join(__dirname, test.file)}`, {
       stdio: "inherit",
       cwd: process.cwd(),
     })
