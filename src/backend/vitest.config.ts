@@ -5,8 +5,12 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "node",
-    include: ["src/**/*.spec.ts", "src/**/*.test.ts", "test/**/*.test.ts"],
-    setupFiles: ["./test/setup.ts"],
+    include: [
+      "src/**/*.spec.ts",
+      "src/**/*.test.ts",
+      "../../tests/unit/backend/**/*.test.ts",
+    ],
+    setupFiles: ["../../tests/unit/backend/setup.ts"],
     coverage: {
       reporter: ["text", "json", "html"],
       exclude: [

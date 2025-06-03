@@ -7,7 +7,7 @@ import * as dotenv from "dotenv"
 import { createTestUser } from "./fixtures/test-data"
 
 // Load test environment
-const envPath = path.resolve(process.cwd(), ".env.test")
+const envPath = path.resolve(__dirname, "../../../config/env/.env.test")
 console.log("Loading env from:", envPath)
 dotenv.config({ path: envPath })
 

@@ -62,16 +62,16 @@ build-backend:
 
 # Docker Commands
 up:
-	docker compose up -d
+	docker compose -f config/docker/docker-compose.yml up -d
 
 down:
-	docker compose down
+	docker compose -f config/docker/docker-compose.yml down
 
 docker-build:
-	docker compose build
+	docker compose -f config/docker/docker-compose.yml build
 
 logs:
-	docker compose logs -f
+	docker compose -f config/docker/docker-compose.yml logs -f
 
 # UI Component Management
 ui:

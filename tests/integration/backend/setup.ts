@@ -4,7 +4,9 @@ import { PrismaClient } from "@prisma/client"
 import * as dotenv from "dotenv"
 
 // Load test environment variables
-dotenv.config({ path: path.resolve(process.cwd(), ".env.test") })
+dotenv.config({
+  path: path.resolve(__dirname, "../../../config/env/.env.test"),
+})
 
 export const prisma = new PrismaClient({
   datasourceUrl: process.env.DATABASE_URL,
