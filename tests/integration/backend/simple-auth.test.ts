@@ -4,7 +4,9 @@ import bcrypt from "bcryptjs"
 import * as dotenv from "dotenv"
 
 // Load test environment
-dotenv.config({ path: path.resolve(process.cwd(), ".env.test") })
+dotenv.config({
+  path: path.resolve(__dirname, "../../../config/env/.env.test"),
+})
 
 const prisma = new PrismaClient({
   datasourceUrl:

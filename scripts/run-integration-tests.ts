@@ -3,7 +3,7 @@ import * as path from "node:path"
 import * as dotenv from "dotenv"
 
 // Load test environment
-dotenv.config({ path: path.resolve(process.cwd(), ".env.test") })
+dotenv.config({ path: path.resolve(__dirname, "../../config/env/.env.test") })
 
 console.log("🧪 Running integration tests...")
 console.log("📊 Test database:", process.env.DATABASE_URL)
@@ -11,17 +11,20 @@ console.log("📊 Test database:", process.env.DATABASE_URL)
 try {
   // Run auth integration tests
   console.log("\n🔐 Running authentication integration tests...")
-  execSync("npx tsx test/integration/auth.integration.test.ts", {
+  execSync("npx tsx ../../tests/integration/backend/auth.integration.test.ts", {
     stdio: "inherit",
     env: process.env,
   })
 
   // Run daily report integration tests
   console.log("\n📝 Running daily report integration tests...")
-  execSync("npx tsx test/integration/daily-report.integration.test.ts", {
-    stdio: "inherit",
-    env: process.env,
-  })
+  execSync(
+    "npx tsx ../../tests/integration/backend/daily-report.integration.test.ts",
+    {
+      stdio: "inherit",
+      env: process.env,
+    },
+  )
 
   console.log("\n✅ All integration tests passed!")
 } catch (error) {

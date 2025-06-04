@@ -5,8 +5,8 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "node",
-    include: ["test/integration/**/*.test.ts"],
-    setupFiles: ["./test/integration/setup.ts"],
+    include: ["../../tests/integration/backend/**/*.test.ts"],
+    setupFiles: ["../../tests/integration/backend/setup.ts"],
     pool: "forks",
     poolOptions: {
       forks: {
