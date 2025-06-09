@@ -52,7 +52,27 @@ app.post("/api/auth/login", async (c) => {
   try {
     const body = await c.req.json()
     const token = await userService.authenticate(body)
-    return c.json(token)
+
+    // Get user information
+    const user = await userService.findByEmail(body.email)
+    if (!user) {
+      return c.json({ error: "User not found" }, 400)
+    }
+
+    // Return both token and user info (without password)
+    return c.json({
+      token: token.accessToken,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role:
+          user.role === "admin" || user.role === "manager" ? "admin" : "user",
+        departmentId: user.departmentId,
+        createdAt: user.createdAt.toISOString(),
+        updatedAt: user.updatedAt.toISOString(),
+      },
+    })
   } catch (error) {
     return c.json(
       { error: error instanceof Error ? error.message : "Unknown error" },
@@ -149,6 +169,89 @@ app.post("/api/daily-reports/:id/reject", async (c) => {
       400,
     )
   }
+})
+
+// Statistics routes
+app.get("/api/stats/personal", async (c) => {
+  // TODO: Implement personal statistics
+  // This should return user's personal report statistics
+  return c.json({
+    totalReports: 145,
+    thisMonthReports: 22,
+    averageCompletionTime: "2.5時間",
+    completionRate: 95,
+    weeklyTrend: [
+      { day: "月", count: 5 },
+      { day: "火", count: 4 },
+      { day: "水", count: 5 },
+      { day: "木", count: 4 },
+      { day: "金", count: 4 },
+    ],
+    recentProjects: [
+      { name: "プロジェクトA", reports: 45, percentage: 31 },
+      { name: "プロジェクトB", reports: 38, percentage: 26 },
+      { name: "プロジェクトC", reports: 32, percentage: 22 },
+      { name: "その他", reports: 30, percentage: 21 },
+    ],
+  })
+})
+
+app.get("/api/stats/team", async (c) => {
+  // TODO: Implement team statistics (admin only)
+  // This should return team-wide report statistics
+  return c.json({
+    totalMembers: 24,
+    activeToday: 18,
+    reportCompletionRate: 87,
+    averageResponseTime: "1.2時間",
+    departmentStats: [
+      { name: "開発部", members: 12, completion: 92, reports: 276 },
+      { name: "営業部", members: 8, completion: 85, reports: 184 },
+      { name: "総務部", members: 4, completion: 78, reports: 89 },
+    ],
+    memberPerformance: [
+      {
+        name: "田中太郎",
+        department: "開発部",
+        reports: 22,
+        completion: 100,
+        avgTime: "2.1時間",
+      },
+      {
+        name: "佐藤花子",
+        department: "営業部",
+        reports: 21,
+        completion: 95,
+        avgTime: "1.8時間",
+      },
+      {
+        name: "鈴木一郎",
+        department: "開発部",
+        reports: 20,
+        completion: 91,
+        avgTime: "2.5時間",
+      },
+      {
+        name: "高橋美咲",
+        department: "総務部",
+        reports: 19,
+        completion: 86,
+        avgTime: "1.5時間",
+      },
+      {
+        name: "山田健",
+        department: "開発部",
+        reports: 18,
+        completion: 82,
+        avgTime: "3.0時間",
+      },
+    ],
+    weeklyTrend: {
+      labels: ["月", "火", "水", "木", "金"],
+      submitted: [85, 88, 92, 87, 83],
+      onTime: [78, 82, 85, 80, 75],
+    },
+  })
 })
 
 // Start server

@@ -8,10 +8,10 @@ import {
 import type { UserRepository } from "../../domain/workflows"
 
 export const createUserRepository = (prisma: PrismaClient): UserRepository => {
-  const toDomain = (user: PrismaUser): User => ({
+  const toDomain = (user: PrismaUser, includePassword = false): User => ({
     id: createUserId(user.id),
     email: user.email,
-    password: undefined, // passwordHash is not exposed in domain
+    password: includePassword ? user.passwordHash : undefined,
     name: user.username,
     role: user.role as UserRole,
     departmentId: createDepartmentId(""), // No departmentId in schema
@@ -32,7 +32,7 @@ export const createUserRepository = (prisma: PrismaClient): UserRepository => {
       const user = await prisma.user.findUnique({
         where: { email },
       })
-      return user ? toDomain(user) : null
+      return user ? toDomain(user, true) : null // Include password for authentication
     },
 
     create: async (user: User & { password: string }): Promise<User> => {
