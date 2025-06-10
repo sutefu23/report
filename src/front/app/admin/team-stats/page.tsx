@@ -32,15 +32,20 @@ import {
   TabsTrigger,
 } from "@/components/shadcn/ui/tabs"
 import { apiClient } from "@/lib/api"
+import { useAuthStore } from "@/stores/auth"
 import {
   ActivityIcon,
   BarChart3Icon,
+  ShieldOffIcon,
   TrendingUpIcon,
   UsersIcon,
 } from "lucide-react"
+import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 
 export default function TeamStatsPage() {
+  const router = useRouter()
+  const { user } = useAuthStore()
   const [teamStats, setTeamStats] = useState({
     totalMembers: 0,
     activeToday: 0,
@@ -69,8 +74,15 @@ export default function TeamStatsPage() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    // Check if user has admin role
+    if (!user || user.role !== "admin") {
+      setError("管理者権限が必要です")
+      setLoading(false)
+      return
+    }
+
     fetchTeamStats()
-  }, [])
+  }, [user])
 
   const fetchTeamStats = async () => {
     try {
@@ -104,7 +116,43 @@ export default function TeamStatsPage() {
     return (
       <div className="container mx-auto p-6">
         <div className="flex items-center justify-center h-64">
-          <p className="text-destructive">{error}</p>
+          <Card className="w-full max-w-md">
+            <CardContent className="pt-6">
+              <div className="flex flex-col items-center space-y-4">
+                {error === "管理者権限が必要です" ? (
+                  <>
+                    <ShieldOffIcon className="h-12 w-12 text-muted-foreground" />
+                    <div className="text-center">
+                      <p className="text-lg font-semibold">
+                        アクセス権限がありません
+                      </p>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        このページは管理者のみアクセス可能です
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => router.push("/dashboard")}
+                      className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+                    >
+                      ダッシュボードに戻る
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-destructive">{error}</p>
+                    <button
+                      type="button"
+                      onClick={() => fetchTeamStats()}
+                      className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2"
+                    >
+                      再試行
+                    </button>
+                  </>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     )
@@ -118,29 +166,39 @@ export default function TeamStatsPage() {
       </div>
 
       <div className="flex gap-4 mb-6">
-        <Select defaultValue="all">
-          <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="部署を選択" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">全部署</SelectItem>
-            <SelectItem value="dev">開発部</SelectItem>
-            <SelectItem value="sales">営業部</SelectItem>
-            <SelectItem value="admin">総務部</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="relative">
+          <Select defaultValue="all" disabled>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="部署を選択" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">全部署</SelectItem>
+              <SelectItem value="dev">開発部</SelectItem>
+              <SelectItem value="sales">営業部</SelectItem>
+              <SelectItem value="admin">総務部</SelectItem>
+            </SelectContent>
+          </Select>
+          <Badge className="absolute -top-2 -right-2" variant="secondary">
+            Coming Soon
+          </Badge>
+        </div>
 
-        <Select defaultValue="month">
-          <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="期間を選択" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="week">今週</SelectItem>
-            <SelectItem value="month">今月</SelectItem>
-            <SelectItem value="quarter">四半期</SelectItem>
-            <SelectItem value="year">今年</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="relative">
+          <Select defaultValue="month" disabled>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="期間を選択" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="week">今週</SelectItem>
+              <SelectItem value="month">今月</SelectItem>
+              <SelectItem value="quarter">四半期</SelectItem>
+              <SelectItem value="year">今年</SelectItem>
+            </SelectContent>
+          </Select>
+          <Badge className="absolute -top-2 -right-2" variant="secondary">
+            Coming Soon
+          </Badge>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">

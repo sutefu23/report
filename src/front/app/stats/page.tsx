@@ -104,7 +104,12 @@ export default function StatsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.thisMonthReports}</div>
-            <p className="text-xs text-muted-foreground">2024年6月</p>
+            <p className="text-xs text-muted-foreground">
+              {new Date().toLocaleDateString("ja-JP", {
+                year: "numeric",
+                month: "long",
+              })}
+            </p>
           </CardContent>
         </Card>
 

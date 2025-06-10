@@ -173,7 +173,8 @@ app.post("/api/daily-reports/:id/reject", async (c) => {
 
 // Statistics routes
 app.get("/api/stats/personal", async (c) => {
-  // TODO: Implement personal statistics
+  // TODO: Implement personal statistics with real database queries
+  // TODO: Optimize with database aggregations for better performance
   // This should return user's personal report statistics
   return c.json({
     totalReports: 145,
@@ -197,7 +198,9 @@ app.get("/api/stats/personal", async (c) => {
 })
 
 app.get("/api/stats/team", async (c) => {
-  // TODO: Implement team statistics (admin only)
+  // TODO: Implement team statistics with real database queries (admin only)
+  // TODO: Add authentication middleware to verify admin role
+  // TODO: Optimize with database aggregations and consider caching
   // This should return team-wide report statistics
   return c.json({
     totalMembers: 24,
