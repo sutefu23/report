@@ -4,8 +4,13 @@ import { Hono } from "hono"
 import { cors } from "hono/cors"
 import { logger } from "hono/logger"
 import { createDailyReportService } from "../application/services/daily-report-service.js"
+import { createStatisticsService } from "../application/services/statistics-service.js"
 import { createUserService } from "../application/services/user-service.js"
 import { createDailyReportId } from "../domain/types/index.js"
+import {
+  authenticate,
+  requireAdmin,
+} from "../infrastructure/auth/middleware.js"
 import { createPasswordHasher } from "../infrastructure/auth/password-hasher.js"
 import { createTokenGenerator } from "../infrastructure/auth/token-generator.js"
 import { getPrismaClient } from "../infrastructure/database/prisma.js"
@@ -14,12 +19,19 @@ import {
   type SimpleUserRepository,
   createSimpleUserRepository,
 } from "../infrastructure/repositories/simple-user-repository.js"
+import { createStatisticsRepository } from "../infrastructure/repositories/statistics-repository.js"
 import { createUserRepository } from "../infrastructure/repositories/user-repository.js"
 
 // Load environment variables
 config()
 
-const app = new Hono()
+type Variables = {
+  userId: string
+  userEmail: string
+  userRole: string
+}
+
+const app = new Hono<{ Variables: Variables }>()
 
 // Middleware
 app.use("*", logger())
@@ -30,6 +42,7 @@ const prisma = getPrismaClient()
 const dailyReportRepo = createDailyReportRepository(prisma)
 const userRepo = createUserRepository(prisma)
 const simpleUserRepo = createSimpleUserRepository(prisma)
+const statisticsRepo = createStatisticsRepository(prisma)
 const passwordHasher = createPasswordHasher()
 const tokenGenerator = createTokenGenerator(
   process.env.JWT_SECRET || "default-secret",
@@ -41,6 +54,7 @@ const dailyReportService = createDailyReportService(
   simpleUserRepo,
 )
 const userService = createUserService(userRepo, passwordHasher, tokenGenerator)
+const statisticsService = createStatisticsService(statisticsRepo)
 
 // Health check endpoint
 app.get("/health", (c) => {
@@ -147,6 +161,32 @@ app.post("/api/daily-reports/:id/reject", async (c) => {
     return c.json(
       { error: error instanceof Error ? error.message : "Unknown error" },
       400,
+    )
+  }
+})
+
+// Statistics endpoints
+app.get("/api/stats/personal", authenticate, async (c) => {
+  try {
+    const userId = c.get("userId")
+    const stats = await statisticsService.getPersonalStats(userId)
+    return c.json(stats)
+  } catch (error) {
+    return c.json(
+      { error: error instanceof Error ? error.message : "Unknown error" },
+      500,
+    )
+  }
+})
+
+app.get("/api/stats/team", authenticate, requireAdmin, async (c) => {
+  try {
+    const stats = await statisticsService.getTeamStats()
+    return c.json(stats)
+  } catch (error) {
+    return c.json(
+      { error: error instanceof Error ? error.message : "Unknown error" },
+      500,
     )
   }
 })
