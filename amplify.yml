@@ -1,0 +1,21 @@
+version: 1
+applications:
+  - frontend:
+      phases:
+        preBuild:
+          commands:
+            - npm install
+        build:
+          commands:
+            - npm run build:frontend
+      artifacts:
+        baseDirectory: src/front/.next
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
+    appRoot: src/front
+    env:
+      variables:
+        NEXT_PUBLIC_API_URL: ${API_URL}
