@@ -1,4 +1,4 @@
-import * as jwt from "jsonwebtoken"
+import jwt from "jsonwebtoken"
 import type { AuthToken } from "../../domain/types"
 import type { TokenGenerator } from "../../domain/workflows"
 

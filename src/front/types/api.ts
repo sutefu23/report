@@ -100,32 +100,44 @@ export interface Comment {
 
 // Statistics types
 export interface UserStats {
-  userId: string
-  period: string
-  totalHours: number
-  averageHoursPerDay: number
-  reportCount: number
-  submittedOnTimeRate: number
-  projectBreakdown: Array<{
-    projectId: string
-    projectName: string
-    totalHours: number
+  totalReports: number
+  thisMonthReports: number
+  averageCompletionTime: string
+  completionRate: number
+  weeklyTrend: Array<{
+    day: string
+    count: number
+  }>
+  recentProjects: Array<{
+    name: string
+    reports: number
     percentage: number
   }>
 }
 
 export interface TeamStats {
-  period: string
-  totalReports: number
-  totalHours: number
-  averageHoursPerPerson: number
-  submittedOnTimeRate: number
-  memberStats: Array<{
-    userId: string
-    userName: string
-    totalHours: number
-    reportCount: number
+  totalMembers: number
+  activeToday: number
+  reportCompletionRate: number
+  averageResponseTime: string
+  departmentStats: Array<{
+    name: string
+    members: number
+    completion: number
+    reports: number
   }>
+  memberPerformance: Array<{
+    name: string
+    department: string
+    reports: number
+    completion: number
+    avgTime: string
+  }>
+  weeklyTrend: {
+    labels: string[]
+    submitted: number[]
+    onTime: number[]
+  }
 }
 
 // API response wrappers

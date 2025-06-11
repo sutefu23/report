@@ -26,6 +26,7 @@
     "db:migrate": "npm run db:migrate -w @daily-report/backend",
     "db:studio": "npm run db:studio -w @daily-report/backend",
     "db:seed": "npm run db:seed -w @daily-report/backend",
+    "db:reset": "npm run db:reset -w @daily-report/backend",
     "proto:generate": "npm run proto:generate -w @daily-report/shared"
   },
   "keywords": ["daily-report", "typescript", "grpc", "nextjs", "hono"],

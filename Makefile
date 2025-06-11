@@ -47,6 +47,13 @@ db-studio:
 db-seed:
 	npm run db:seed
 
+db-reset:
+	npm run db:reset
+
+db-refresh:
+	npm run db:reset
+	npm run db:seed
+
 # Build Commands
 build:
 	npm run build

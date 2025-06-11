@@ -198,12 +198,12 @@ class ApiClient {
   }
 
   // Statistics
-  async getUserStats(userId: string, period: string) {
-    return this.request<UserStats>(`/api/stats/user/${userId}?period=${period}`)
+  async getPersonalStats() {
+    return this.request<UserStats>("/api/stats/personal")
   }
 
-  async getTeamStats(period: string) {
-    return this.request<TeamStats>(`/api/stats/team?period=${period}`)
+  async getTeamStats() {
+    return this.request<TeamStats>("/api/stats/team")
   }
 }
 
